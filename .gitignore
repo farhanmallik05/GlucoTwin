@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# ML Model Artifacts (large binary files)
+src/models/artifacts/*.pkl
+src/models/artifacts/*.pt
+src/models/artifacts/*.json
+!src/models/artifacts/.gitkeep
+
+# Data (raw and processed — large files)
+data/raw/
+data/processed/
+data/synthetic/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/synthetic/.gitkeep
+
+# Synthea output
+synthea_output/
+
+# Secrets
+.env
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Node.js
+node_modules/
+src/dashboard/dist/
+src/dashboard/.vite/
+src/dashboard/node_modules/
+
+# Docker
+.docker/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.prof
+
+# Logs
+*.log
+logs/
+
+*.db
+*.db-shm
+*.db-wal
+
+# Agent & IDE internal
+.agents/

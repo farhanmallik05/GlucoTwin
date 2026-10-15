@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+
+  glucotwin-api:
+    build:
+      context: .
+      dockerfile: src/api/Dockerfile
+    container_name: glucotwin-api
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY:-demo-glucotwin-2026}
+      - DEMO_MODE=true
+      - TWIN_UPDATE_INTERVAL_SECONDS=5
+      - DATABASE_URL=sqlite:////app/data/glucotwin.db
+      - LOG_LEVEL=INFO
+      - MODEL_ARTIFACTS_PATH=/app/artifacts
+    volumes:
+      - ./data:/app/data
+      - ./src/models/artifacts:/app/artifacts:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - glucotwin-network
+
+  glucotwin-dashboard:
+    build:
+      context: src/dashboard
+      dockerfile: Dockerfile
+    container_name: glucotwin-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
+      - VITE_API_KEY=${API_KEY:-demo-glucotwin-2026}
+    depends_on:
+      glucotwin-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - glucotwin-network
+
+networks:
+  glucotwin-network:
+    driver: bridge
