@@ -16,7 +16,7 @@ Combines:
 
 from __future__ import annotations
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -239,7 +239,7 @@ class FeatureEngineer:
         )
 
         # Timestamps
-        last_dt = datetime.utcnow()
+        last_dt = datetime.now(timezone.utc).replace(tzinfo=None)
         if "timestamp" in w_df.columns and not w_df["timestamp"].isna().all():
             val = w_df["timestamp"].iloc[-1]
             if isinstance(val, (datetime, pd.Timestamp)):

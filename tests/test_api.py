@@ -5,9 +5,12 @@ Covers Tiers 1-3 & 5: Healthcheck, API key auth, Patient CRUD, Telemetry ingesti
 Predictions, Trajectory forecast, SHAP query, Alert log, and Demo scenario injection.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 from httpx import AsyncClient, ASGITransport
+
+def get_utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 API_KEY = "demo-glucotwin-2026"
 AUTH_HEADERS = {"X-API-Key": API_KEY}
@@ -74,7 +77,7 @@ def api_app():
             tier = "RED" if risk >= 0.80 else "GREEN"
             return {
                 "patient_id": patient_id,
-                "timestamp": payload.get("timestamp", datetime.utcnow().isoformat()),
+                "timestamp": payload.get("timestamp", get_utc_now().isoformat()),
                 "glucose_current": glucose,
                 "glucose_trend": "stable",
                 "risk_score": risk,
@@ -213,7 +216,7 @@ async def test_update_telemetry_returns_prediction(api_app, sample_ehr_features)
 
         update_resp = await client.post("/api/v1/patients/API-TELEM-001/update", json={
             "patient_id": "API-TELEM-001",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": get_utc_now().isoformat(),
             "glucose_mgdl": 185.0,
             "glucose_roc": 1.5,
             "hrv_rmssd_ms": 38.0,

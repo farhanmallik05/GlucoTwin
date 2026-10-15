@@ -5,7 +5,7 @@ Stateful Virtual Patient Model for Type 2 Diabetes Adverse Glycemic Event Predic
 
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Deque, Dict, List, Literal, Optional
 import numpy as np
 
@@ -13,6 +13,11 @@ from src.twin.alert_system import Alert, AlertSystem, EventType, RiskTier
 from src.twin.iob_model import IOBModel
 
 TrendDirection = Literal["rapidly_rising", "rising", "stable", "falling", "rapidly_falling"]
+
+
+def get_utc_now() -> datetime:
+    """Return current naive UTC timestamp without deprecation warnings."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 @dataclass
@@ -42,8 +47,8 @@ class PatientTwin:
     def __init__(self, patient_id: str, ehr_features: Dict[str, Any], history_hours: int = 24):
         self.patient_id = patient_id
         self.ehr_features = ehr_features or {}
-        self.twin_created_at = datetime.utcnow()
-        self.twin_last_updated = datetime.utcnow()
+        self.twin_created_at = get_utc_now()
+        self.twin_last_updated = get_utc_now()
 
         # Sliding window circular buffers (288 steps = 24 hours at 5-minute sampling)
         steps_24h = 288
@@ -132,7 +137,7 @@ class PatientTwin:
         """
         Construct PredictionResult with conditional SHAP explanation for RED alerts.
         """
-        ts = timestamp or datetime.utcnow()
+        ts = timestamp or get_utc_now()
         tier = self.alert_system.classify_risk(risk_score)
         c_low = max(0.0, risk_score - 0.05)
         c_high = min(1.0, risk_score + 0.05)
@@ -200,7 +205,7 @@ class PatientTwin:
         """
         Process incoming multi-channel wearable sensor reading and advance twin physiological state.
         """
-        ts = getattr(reading, "timestamp", datetime.utcnow())
+        ts = getattr(reading, "timestamp", get_utc_now())
         glucose = float(getattr(reading, "glucose_mgdl", 120.0))
         hrv = float(getattr(reading, "hrv_rmssd_ms", 35.0))
         roc = float(getattr(reading, "glucose_roc", 0.0))

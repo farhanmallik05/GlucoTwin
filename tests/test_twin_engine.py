@@ -6,10 +6,13 @@ biexponential IOB pharmacokinetic model, 4-tier alert system, fatigue suppressio
 trajectory forecaster, and SQLite persistence.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 import numpy as np
 import pytest
+
+def get_utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 try:
     from src.data.ingestion.wearable_simulator import WearableReading
@@ -78,7 +81,7 @@ def test_twin_calibrates_after_24h(sample_ehr_features):
     try:
         from src.twin.patient_twin import PatientTwin
         twin = PatientTwin(patient_id="TEST-CALIB", ehr_features=sample_ehr_features)
-        base_time = datetime.utcnow() - timedelta(hours=24)
+        base_time = get_utc_now() - timedelta(hours=24)
 
         for i in range(288):
             r = WearableReading(
@@ -105,7 +108,7 @@ def test_trend_calculation_5_states(sample_ehr_features):
         twin = PatientTwin(patient_id="TEST-TREND", ehr_features=sample_ehr_features)
 
         # Feed 3 rapidly rising readings (ROC > 2.0)
-        now = datetime.utcnow()
+        now = get_utc_now()
         for i in range(3):
             twin.update(WearableReading(
                 patient_id="TEST-TREND",
@@ -210,7 +213,7 @@ def test_alert_system_generates_red_for_high_risk():
         system = AlertSystem()
         alert = system.generate_alert(
             patient_id="PAT-RED",
-            timestamp=datetime.utcnow(),
+            timestamp=get_utc_now(),
             risk_score=0.88,
             current_glucose=265.0,
             glucose_roc=2.8,
@@ -229,7 +232,7 @@ def test_alert_fatigue_suppression():
     try:
         from src.twin.alert_system import AlertSystem
         system = AlertSystem(fatigue_suppression_minutes=30)
-        t0 = datetime.utcnow()
+        t0 = get_utc_now()
 
         # First RED alert should fire
         a1 = system.process_alert("PAT-FATIGUE", t0, risk_score=0.85, glucose=250.0, roc=2.0)
@@ -300,7 +303,7 @@ async def test_persistence_save_and_load(sample_ehr_features):
         twin = PatientTwin("PERSIST-001", sample_ehr_features)
         twin.update(WearableReading(
             patient_id="PERSIST-001",
-            timestamp=datetime.utcnow(),
+            timestamp=get_utc_now(),
             glucose_mgdl=175.0,
             glucose_roc=1.0,
             hrv_rmssd_ms=36.0
@@ -323,7 +326,7 @@ def test_insufficient_data_result_cold_start(sample_ehr_features):
         twin = PatientTwin("COLD-001", sample_ehr_features)
 
         # Feed only 5 readings
-        now = datetime.utcnow()
+        now = get_utc_now()
         for i in range(5):
             res = twin.update(WearableReading(
                 patient_id="COLD-001",

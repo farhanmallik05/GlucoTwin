@@ -8,11 +8,14 @@ Adversarial Stress Test Suite for Milestone 1 Challenger 2:
 """
 
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 import numpy as np
 import pandas as pd
 import pytest
+
+def get_utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 from src.data.preprocessing.feature_engineering import FeatureEngineer, FEATURE_COLUMNS
 from src.data.preprocessing.clinical_validator import ClinicalValidator, ValidationResult, ValidationReport
@@ -62,7 +65,7 @@ class TestFeatureEngineeringAdversarial:
     def test_single_row_dataframe(self, engineer, minimal_ehr):
         """Single-row input DataFrame must be left-padded to 48 rows without error."""
         single_row_df = pd.DataFrame([{
-            "timestamp": datetime.utcnow(),
+            "timestamp": get_utc_now(),
             "glucose_mgdl": 145.0,
             "glucose_roc": 0.0,
             "glucose_acc": 0.0,
@@ -93,7 +96,7 @@ class TestFeatureEngineeringAdversarial:
     def test_large_dataframe_1000_rows(self, engineer, minimal_ehr):
         """Large input DataFrame (1000 rows) must correctly slice latest 48/144/288 windows."""
         n = 1000
-        times = [datetime.utcnow() - timedelta(minutes=(n - i) * 5) for i in range(n)]
+        times = [get_utc_now() - timedelta(minutes=(n - i) * 5) for i in range(n)]
         large_df = pd.DataFrame({
             "timestamp": times,
             "glucose_mgdl": np.linspace(100.0, 200.0, n),
@@ -342,7 +345,7 @@ class TestDatasetLeakageAdversarial:
         # Glucose is steady 120 until step 30 where a sharp spike to 300 occurs
         glucose = [120.0] * 30 + [300.0] * 5 + [120.0] * 15
         df = pd.DataFrame({
-            "timestamp": [datetime.utcnow() + timedelta(minutes=i * 5) for i in range(n)],
+            "timestamp": [get_utc_now() + timedelta(minutes=i * 5) for i in range(n)],
             "glucose_mgdl": glucose,
         })
         labeled = label_adverse_events(df, horizon_minutes=120)

@@ -6,7 +6,7 @@ Supports progressive testability across all milestones (Tier 1 to Tier 4).
 
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
 from unittest.mock import MagicMock
 import numpy as np
@@ -190,7 +190,7 @@ def sample_wearable_reading() -> WearableReading:
     """Standard 5-minute single wearable reading."""
     return WearableReading(
         patient_id="DEMO-RAJESH",
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
         glucose_mgdl=155.0,
         glucose_roc=1.2,
         glucose_acc=0.05,
@@ -215,7 +215,7 @@ def sample_window_df() -> pd.DataFrame:
     4-hour sliding window DataFrame (48 timesteps at 5-min intervals).
     Contains required channels for FeatureEngineer.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     timestamps = [now - timedelta(minutes=(47 - i) * 5) for i in range(48)]
     np.random.seed(42)
     glucose = 140.0 + np.cumsum(np.random.normal(0.5, 2.0, 48))
@@ -392,7 +392,7 @@ def demo_patient_twin(sample_ehr_features, sample_wearable_reading):
         pytest.skip("src.twin.patient_twin not yet implemented")
 
     twin = PatientTwin(patient_id="DEMO-RAJESH", ehr_features=sample_ehr_features)
-    base_time = datetime.utcnow() - timedelta(hours=24)
+    base_time = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
 
     # Seed 288 readings
     for i in range(288):

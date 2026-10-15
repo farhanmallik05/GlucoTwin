@@ -3,7 +3,7 @@ src/api/routes/patients.py
 Patient Twin CRUD, Telemetry Streaming, Trajectory Forecasting, and Explainability Endpoints.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
@@ -87,7 +87,7 @@ async def update_patient_telemetry(patient_id: str, payload: Dict[str, Any]):
     roc = float(payload.get("glucose_roc", 0.0))
     hrv = float(payload.get("hrv_rmssd_ms", 38.0))
     ts_str = payload.get("timestamp")
-    ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00")) if ts_str else datetime.utcnow()
+    ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00")) if ts_str else datetime.now(timezone.utc).replace(tzinfo=None)
 
     reading = WearableReading(
         patient_id=patient_id,

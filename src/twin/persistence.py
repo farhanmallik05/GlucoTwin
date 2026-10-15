@@ -5,7 +5,7 @@ Asynchronous SQLite-backed persistence layer for PatientTwin state, prediction t
 
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import aiosqlite
 
@@ -168,7 +168,7 @@ class TwinPersistence:
         if self._conn is None:
             await self.initialize()
 
-        ts = getattr(result, "timestamp", datetime.utcnow())
+        ts = getattr(result, "timestamp", datetime.now(timezone.utc).replace(tzinfo=None))
         ts_str = ts.isoformat() if isinstance(ts, datetime) else str(ts)
         pid = getattr(result, "patient_id", "UNKNOWN")
         glucose = getattr(result, "glucose_current", 0.0)

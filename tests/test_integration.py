@@ -10,9 +10,12 @@ Validates the full GlucoTwin clinical lifecycle:
 6. Asynchronous persistence logging to SQLite.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import numpy as np
 import pytest
+
+def get_utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 try:
     from src.data.ingestion.wearable_simulator import WearableReading
@@ -99,7 +102,7 @@ async def test_full_demo_scenario(sample_ehr_features):
     assert twin.patient_id == patient_id
 
     # Step 2: Seed 24-Hour Baseline (288 readings at normal glucose)
-    base_time = datetime.utcnow() - timedelta(hours=26)
+    base_time = get_utc_now() - timedelta(hours=26)
     np.random.seed(42)
 
     for i in range(288):

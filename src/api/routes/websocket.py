@@ -3,7 +3,7 @@ src/api/routes/websocket.py
 Real-Time Bidirectional WebSocket Stream for Doctor Dashboard Twin Monitoring.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from src.twin.engine import get_twin_engine
 
@@ -52,7 +52,7 @@ async def websocket_patient_stream(websocket: WebSocket, patient_id: str):
 
             elif data == "request_tick" or data.startswith("{"):
                 # Broadcast real-time twin update
-                now_str = datetime.utcnow().isoformat()
+                now_str = datetime.now(timezone.utc).isoformat()
                 g_val = twin.current_glucose if twin.current_glucose > 0 else 185.3
                 risk = twin.current_risk_score if twin.current_risk_score > 0 else 0.835
                 tier = twin.current_risk_tier if twin.current_risk_score > 0 else "RED"
