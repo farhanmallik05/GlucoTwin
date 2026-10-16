@@ -419,3 +419,9 @@ def demo_patient_twin(sample_ehr_features, sample_wearable_reading):
         twin.update(reading)
 
     return twin
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Ensure clean process exit by collecting garbage and closing background thread pools."""
+    import gc
+    gc.collect()

@@ -167,6 +167,7 @@ async def test_full_demo_scenario(sample_ehr_features):
     # Step 5: Verify Persistence Log
     history = await db.get_prediction_history(patient_id, hours=3)
     assert len(history) >= 24, "All scenario predictions must be safely persisted to database"
+    await db.close()
 
 
 # ---------------------------------------------------------------------------

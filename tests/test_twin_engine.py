@@ -315,6 +315,7 @@ async def test_persistence_save_and_load(sample_ehr_features):
         assert restored_state is not None
         assert restored_state["patient_id"] == "PERSIST-001"
         assert abs(restored_state["current_glucose"] - 175.0) < 0.1
+        await db.close()
     except ImportError:
         pass
 
