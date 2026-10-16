@@ -11,6 +11,8 @@ services:
       - "8000:8000"
     environment:
       - API_KEY=${API_KEY:-demo-glucotwin-2026}
+      - GLUCOTWIN_API_KEY=${GLUCOTWIN_API_KEY:-${API_KEY:-demo-glucotwin-2026}}
+      - DASHBOARD_ORIGIN=${DASHBOARD_ORIGIN:-http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000}
       - DEMO_MODE=true
       - TWIN_UPDATE_INTERVAL_SECONDS=5
       - DATABASE_URL=sqlite:////app/data/glucotwin.db

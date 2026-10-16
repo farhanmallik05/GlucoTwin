@@ -69,7 +69,7 @@ class EnsemblePredictor:
     def estimate_confidence_interval(
         self,
         sequence: Union[torch.Tensor, np.ndarray],
-        num_samples: int = 5
+        num_samples: int = 30
     ) -> Tuple[float, float]:
         """
         Estimate 95% predictive confidence intervals via Monte Carlo Dropout.

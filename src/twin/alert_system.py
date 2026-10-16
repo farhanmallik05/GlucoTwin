@@ -5,7 +5,7 @@ Tiered Clinical Alert System with 4-Tier Risk Classification and Fatigue Suppres
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 RiskTier = Literal["GREEN", "YELLOW", "ORANGE", "RED"]
 EventType = Literal["hyperglycaemia", "hypoglycaemia", "none"]
@@ -96,9 +96,9 @@ class AlertSystem:
         if iob > 0.5:
             context += f" [Active IOB: {iob:.1f} U]"
         if event_type == "hypoglycaemia":
-            action = " Action: Administer 15g fast-acting carbohydrates / withhold prandial bolus."
+            action = " Action: [Physician judgment required] Administer 15g fast-acting carbohydrates / withhold prandial bolus."
         elif event_type == "hyperglycaemia":
-            action = " Action: Review basal infusion or calculate corrective insulin titration."
+            action = " Action: [Physician judgment required] Review basal infusion or calculate corrective insulin titration."
         else:
             action = ""
         return base + context + action
@@ -130,6 +130,38 @@ class AlertSystem:
             shap_features=shap_features if tier == "RED" else None,
         )
         return alert
+
+    def load_history_from_records(self, alert_records: List[Dict[str, Any]]) -> None:
+        """
+        Populate alert history from persistent store (e.g., SQLite alert_logs).
+        Ensures fatigue suppression windows remain effective across server restarts.
+        """
+        for record in alert_records:
+            pid = record.get("patient_id")
+            if not pid:
+                continue
+            ts = record.get("timestamp")
+            if isinstance(ts, str):
+                try:
+                    ts_dt = datetime.fromisoformat(ts.replace("Z", "+00:00")).replace(tzinfo=None)
+                except Exception:
+                    continue
+            else:
+                ts_dt = ts
+
+            alert = Alert(
+                patient_id=pid,
+                timestamp=ts_dt,
+                tier=record.get("tier", "GREEN"),
+                risk_score=float(record.get("risk_score", 0.0)),
+                event_type=record.get("event_type", "none"),
+                predicted_event_in_minutes=record.get("predicted_event_in_minutes"),
+                message=record.get("message", ""),
+                shap_features=record.get("shap_features"),
+            )
+            if pid not in self.alert_history:
+                self.alert_history[pid] = []
+            self.alert_history[pid].append(alert)
 
     def process_alert(
         self,
@@ -167,3 +199,4 @@ class AlertSystem:
             self.alert_history[patient_id] = []
         self.alert_history[patient_id].append(alert)
         return alert
+

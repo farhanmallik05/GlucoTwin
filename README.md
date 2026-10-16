@@ -37,8 +37,8 @@ Every mandatory item required by the **Happiest Health Digital Twin Challenge 20
 | **Team Leader** | Farhan Mallick |
 | **Participant Role** | Solo Participant / Machine Learning & Systems Lead |
 | **Contact Email** | farhanmallick2005@gmail.com |
-| **Phone Number** | [+91 XXXXXXXXXX / Update with Mobile Number] |
-| **GitHub Handle** | [@farhan](https://github.com/farhan) |
+| **Phone Number** | +91 7988009083 |
+| **GitHub Handle** | [@farhanmallik05](https://github.com/farhanmallik05) |
 
 ---
 
@@ -46,9 +46,9 @@ Every mandatory item required by the **Happiest Health Digital Twin Challenge 20
 
 | Field | Details |
 |---|---|
-| **Institution / College** | [Your College / University / Incubator Name] |
+| **Institution / College** | KCC Institute of Technology and Management, Greater Noida |
 | **Department / Program** | Department of Computer Science & Engineering / AI Lab |
-| **Affiliation / State** | India |
+| **Affiliation / State** | Uttar Pradesh, India |
 
 ---
 
@@ -255,8 +255,8 @@ Copyright (c) 2026 Farhan Mallick / Algo Alchemist — Happiest Health Digital T
 
 * 📄 **Official 12-Slide Executive Presentation PDF:**  
   👉 **[`docs/presentation.pdf`](docs/presentation.pdf)**
-* 📝 **Presentation Markdown Slide Transcripts:**  
-  👉 **[`docs/vibe-assist/presentation_notes.md`](docs/HACKATHON_GUIDE.md)**
+* 📝 **Clinical Validation & Market Due Diligence Report:**  
+  👉 **[`docs/CLINICAL_VALIDATION_AND_MARKET.md`](docs/CLINICAL_VALIDATION_AND_MARKET.md)**
 
 ### Presentation Slide Outline
 * **Slide 1:** Title Slide — GlucoTwin (Happiest Health Digital Twin Challenge 2026)
@@ -292,7 +292,7 @@ Copyright (c) 2026 Farhan Mallick / Algo Alchemist — Happiest Health Digital T
 ### Option 1: Docker Compose (1-Command Deployment)
 ```bash
 # Clone the public repository
-git clone https://github.com/[your-username]/GlucoTwin.git
+git clone https://github.com/farhanmallik05/GlucoTwin.git
 cd GlucoTwin
 
 # Build and launch services
@@ -313,8 +313,8 @@ venv\Scripts\activate   # Windows
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Run the automated test suite (81 tests)
-python -m pytest -p no:langsmith -v tests/test_data_pipeline.py tests/test_adversarial_feature_leakage.py tests/test_twin_engine.py tests/test_models.py tests/test_api.py tests/test_websocket.py tests/test_integration.py
+# 3. Run the automated test suite (87 tests)
+python -m pytest -p no:langsmith -q
 
 # 4. Launch FastAPI Server & Cockpit
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload

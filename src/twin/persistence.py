@@ -221,3 +221,62 @@ class TwinPersistence:
                     "top_features": json.loads(r[9]) if r[9] else None,
                 })
             return results
+
+    async def log_alert(self, alert: Any) -> None:
+        """Persist a clinical alert to the alert_logs table."""
+        if self._conn is None:
+            await self.initialize()
+
+        pid = getattr(alert, "patient_id", "UNKNOWN")
+        ts = getattr(alert, "timestamp", datetime.now(timezone.utc).replace(tzinfo=None))
+        ts_str = ts.isoformat() if isinstance(ts, datetime) else str(ts)
+        tier = getattr(alert, "tier", "GREEN")
+        risk = float(getattr(alert, "risk_score", 0.0))
+        event_type = getattr(alert, "event_type", "none")
+        eta = getattr(alert, "predicted_event_in_minutes", None)
+        message = getattr(alert, "message", "")
+        shap_feats = getattr(alert, "shap_features", None)
+        shap_json = json.dumps(shap_feats) if shap_feats else None
+
+        async with self._conn.cursor() as cursor:
+            await cursor.execute("""
+                INSERT INTO alert_logs (
+                    patient_id, timestamp, tier, risk_score, event_type,
+                    predicted_event_in_minutes, message, shap_features_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """, (pid, ts_str, tier, risk, event_type, eta, message, shap_json))
+            await self._conn.commit()
+
+    async def get_recent_alerts(self, patient_id: Optional[str] = None, hours: int = 24) -> List[Dict[str, Any]]:
+        """Retrieve recent clinical alerts within lookback window for fatigue suppression and auditing."""
+        if self._conn is None:
+            await self.initialize()
+
+        query = """
+            SELECT patient_id, timestamp, tier, risk_score, event_type,
+                   predicted_event_in_minutes, message, shap_features_json
+            FROM alert_logs
+        """
+        params: List[Any] = []
+        if patient_id:
+            query += " WHERE patient_id = ?"
+            params.append(patient_id)
+        query += " ORDER BY id ASC;"
+
+        async with self._conn.cursor() as cursor:
+            await cursor.execute(query, tuple(params))
+            rows = await cursor.fetchall()
+            results = []
+            for r in rows:
+                results.append({
+                    "patient_id": r[0],
+                    "timestamp": r[1],
+                    "tier": r[2],
+                    "risk_score": r[3],
+                    "event_type": r[4],
+                    "predicted_event_in_minutes": r[5],
+                    "message": r[6],
+                    "shap_features": json.loads(r[7]) if r[7] else None,
+                })
+            return results
+

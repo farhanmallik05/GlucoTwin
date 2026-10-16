@@ -35,7 +35,7 @@
 **On Screen:** Slide 1 (Title) then Slide 2 (Executive Summary) and Slide 3 (The Problem) from `docs/presentation.pdf`.
 
 > **Spoken Script:**
-> *"Hello esteemed judges, clinical panellists, and attendees of the Happiest Health Digital Twin Challenge 2026. My name is [Your Name], representing Team Algo Alchemist. Today, I am proud to present **GlucoTwin**: a real-time, stateful digital twin engineered specifically for the Indian Type 2 Diabetes population to predict adverse glycemic excursions 120 minutes before they occur.*
+> *"Hello esteemed judges, clinical panellists, and attendees of the Happiest Health Digital Twin Challenge 2026. My name is Farhan Mallick, representing Team Algo Alchemist from KCC Institute of Technology and Management, Greater Noida. Today, I am proud to present **GlucoTwin**: a real-time, stateful digital twin engineered specifically for the Indian Type 2 Diabetes population to predict adverse glycemic excursions 120 minutes before they occur.*
 >
 > *To appreciate why GlucoTwin is essential, we must look at India's metabolic reality. According to the landmark 2023 ICMR-INDIAB study, India carries an unprecedented burden of 101.3 million diagnosed adults with Type 2 Diabetes, with another 136 million individuals in the pre-diabetic stage. Yet, despite the availability of glucometers and modern continuous glucose monitors, acute glycemic emergencies — severe hypoglycemia and hyperosmolar hyperglycemia — remain a leading driver of preventable emergency room admissions.*
 >

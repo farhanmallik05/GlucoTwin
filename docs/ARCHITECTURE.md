@@ -4,7 +4,7 @@
 | Document | System Architecture |
 |---|---|
 | **Version** | 1.0 |
-| **Author** | [Your Name] |
+| **Author** | Farhan Mallick (Algo Alchemist) |
 | **Date** | October 2026 |
 
 ---

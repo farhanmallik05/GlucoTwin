@@ -5,7 +5,7 @@
 |---|---|
 | **Version** | 1.0 |
 | **Status** | Approved for Development |
-| **Author** | [Your Name] — Team Leader, Algo Alchemist |
+| **Author** | Farhan Mallick — Team Leader, Algo Alchemist |
 | **Date** | October 2026 |
 | **Project** | Digital Twin Challenge 2026 — Happiest Health |
 | **Review Gate** | Pre-Development / Concept Approval |
@@ -458,4 +458,4 @@ Total allocated: 14 days → 2 days buffer
 ---
 
 *PDR Version 1.0 | GlucoTwin | Digital Twin Challenge 2026*
-*Author: [Your Name] | Status: Approved for Development | October 2026*
+*Author: Farhan Mallick | Status: Approved for Development | October 2026*

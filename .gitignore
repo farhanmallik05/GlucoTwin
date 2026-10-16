@@ -72,3 +72,7 @@ logs/
 
 # Agent & IDE internal
 .agents/
+
+# Internal Development & Prompt Notes
+docs/vibe-assist/
+docs/HACKATHON_GUIDE.md

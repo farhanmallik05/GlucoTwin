@@ -4,111 +4,181 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GlucoTwin — Type 2 Diabetes Digital Twin Cockpit</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0891B2">
+
     <!-- TailwindCSS & Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts: Inter -->
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --bg-base: #0B0F19;
+            --text-base: #F3F4F6;
+            --panel-bg: rgba(17, 24, 39, 0.78);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --panel-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            --subtext: #9CA3AF;
+            --card-subbg: rgba(15, 23, 42, 0.85);
+            --table-hover: rgba(30, 41, 59, 0.5);
+            --grid-color: rgba(255, 255, 255, 0.06);
+            --chart-tick: #9CA3AF;
+        }
+
+        body.light-mode {
+            --bg-base: #F8FAFC;
+            --text-base: #0F172A;
+            --panel-bg: rgba(255, 255, 255, 0.95);
+            --panel-border: rgba(0, 0, 0, 0.1);
+            --panel-shadow: 0 8px 20px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            --subtext: #64748B;
+            --card-subbg: rgba(241, 245, 249, 0.95);
+            --table-hover: rgba(241, 245, 249, 0.8);
+            --grid-color: rgba(0, 0, 0, 0.06);
+            --chart-tick: #475569;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0B0F19;
-            color: #F3F4F6;
+            background-color: var(--bg-base);
+            color: var(--text-base);
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
+
         .mono {
             font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
         }
+
         .glass-panel {
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--panel-border);
+            box-shadow: var(--panel-shadow);
+            transition: all 0.25s ease;
         }
+
         .pulse-red {
             animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes pulse-red {
             0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-            50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.85); }
+            50% { box-shadow: 0 0 32px rgba(239, 68, 68, 0.85); }
         }
+
         .pulse-orange {
             animation: pulse-orange 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes pulse-orange {
-            0%, 100% { box-shadow: 0 0 12px rgba(249, 115, 22, 0.3); }
-            50% { box-shadow: 0 0 25px rgba(249, 115, 22, 0.7); }
+            0%, 100% { box-shadow: 0 0 12px rgba(249, 115, 22, 0.35); }
+            50% { box-shadow: 0 0 26px rgba(249, 115, 22, 0.75); }
         }
+
+        .pulse-green {
+            animation: pulse-green 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.25); }
+            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
+        }
+
+        /* Print formatting for PDF / consult note */
+        @media print {
+            body { background: white !important; color: black !important; }
+            header, footer, .no-print, button { display: none !important; }
+            .print-only { display: block !important; }
+            #consultModal { position: static !important; display: block !important; background: white !important; }
+            #consultModal .glass-panel { box-shadow: none !important; border: 1px solid #ccc !important; }
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0B0F19; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <!-- Top Navigation Bar -->
-    <header class="glass-panel sticky top-0 z-50 border-b border-gray-800 px-6 py-3.5 flex items-center justify-between">
+    <header class="glass-panel sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
         <div class="flex items-center space-x-4">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                 <span class="text-xl font-black text-gray-950">🩺</span>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 class="text-lg font-bold tracking-tight text-white">GlucoTwin</h1>
-                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">CLINICAL TWIN COCKPIT</span>
-                    <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-950 text-purple-400 border border-purple-800">AI DIGITAL TWIN 2026</span>
+                    <h1 class="text-lg font-bold tracking-tight">GlucoTwin</h1>
+                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">CLINICAL COCKPIT</span>
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-950 text-amber-300 border border-amber-800" title="Clinical Decision Support tool. Requires independent physician validation.">CDS TOOL — NOT SaMD</span>
                 </div>
                 <p class="text-xs text-gray-400">Type 2 Diabetes Adverse Glycemic Event Predictor (120-min Horizon)</p>
             </div>
         </div>
 
-        <!-- Cohort Switcher & Connection Status -->
-        <div class="flex items-center space-x-4">
-            <div class="flex items-center bg-gray-900 border border-gray-700/80 rounded-lg p-1 text-xs">
+        <!-- Controls: Cohort Switcher, OPD Light Mode, Consult Export, Status -->
+        <div class="flex items-center space-x-3">
+            <!-- Cohort Switcher -->
+            <div class="flex items-center bg-gray-900/90 border border-gray-700/80 rounded-lg p-1 text-xs">
                 <span class="text-gray-400 px-2 font-medium">Cohort:</span>
-                <button onclick="switchPatient('DEMO-RAJESH')" id="btn-DEMO-RAJESH" class="px-3 py-1 rounded-md font-semibold text-white bg-cyan-600 transition">Rajesh (52M)</button>
-                <button onclick="switchPatient('DEMO-PRIYA')" id="btn-DEMO-PRIYA" class="px-3 py-1 rounded-md text-gray-300 hover:text-white transition">Priya (46F)</button>
-                <button onclick="switchPatient('DEMO-MOHAN')" id="btn-DEMO-MOHAN" class="px-3 py-1 rounded-md text-gray-300 hover:text-white transition">Mohan (61M)</button>
-                <button onclick="switchPatient('DEMO-SUNITA')" id="btn-DEMO-SUNITA" class="px-3 py-1 rounded-md text-gray-300 hover:text-white transition">Sunita (39F)</button>
+                <button onclick="switchPatient('DEMO-RAJESH')" id="btn-DEMO-RAJESH" class="px-2.5 py-1 rounded-md font-semibold text-white bg-cyan-600 transition">Rajesh (52M)</button>
+                <button onclick="switchPatient('DEMO-PRIYA')" id="btn-DEMO-PRIYA" class="px-2.5 py-1 rounded-md text-gray-300 hover:text-white transition">Priya (46F)</button>
+                <button onclick="switchPatient('DEMO-MOHAN')" id="btn-DEMO-MOHAN" class="px-2.5 py-1 rounded-md text-gray-300 hover:text-white transition">Mohan (61M)</button>
+                <button onclick="switchPatient('DEMO-SUNITA')" id="btn-DEMO-SUNITA" class="px-2.5 py-1 rounded-md text-gray-300 hover:text-white transition">Sunita (39F)</button>
             </div>
 
-            <!-- WebSocket Indicator -->
+            <!-- OPD High Contrast Mode Toggle -->
+            <button onclick="toggleTheme()" id="theme-toggle-btn" class="px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 text-xs font-semibold flex items-center space-x-1.5 transition bg-gray-900/80">
+                <span id="theme-icon">☀️</span>
+                <span id="theme-label">OPD Light</span>
+            </button>
+
+            <!-- Consult Note Export Button -->
+            <button onclick="openConsultModal()" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-md shadow-emerald-700/20 transition">
+                <span>📋</span>
+                <span>Export Consult</span>
+            </button>
+
+            <!-- WebSocket & Telemetry Indicator -->
             <div class="flex items-center space-x-2 bg-gray-900/80 border border-gray-800 px-3 py-1.5 rounded-lg text-xs">
                 <div id="ws-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span id="ws-text" class="text-gray-300 font-medium">Live Twin Synced</span>
-                <span class="text-emerald-400 mono text-[10px]">&lt;140ms</span>
+                <span id="ws-text" class="text-gray-300 font-medium">Twin Synced</span>
+                <span id="network-pill" class="text-emerald-400 mono text-[10px]">&lt;140ms</span>
             </div>
         </div>
     </header>
 
     <!-- Main Dashboard Grid -->
-    <main class="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
+    <main class="flex-1 p-6 space-y-5 max-w-7xl mx-auto w-full">
 
-        <!-- Top Critical Alert Banner (Dynamically Shown on RED / ORANGE) -->
-        <div id="alert-banner" class="glass-panel p-4 rounded-2xl border-l-8 border-red-500 flex items-center justify-between transition-all duration-300 pulse-red">
+        <!-- 3-SECOND GLANCE TRIAGE WIDGET (OPD CLINICAL RAPID REVIEW) -->
+        <div id="triage-card" class="glass-panel p-4 rounded-2xl border-l-8 border-red-500 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-300 pulse-red">
             <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-xl bg-red-950/80 border border-red-800 flex items-center justify-center text-2xl">
-                    ⚠️
+                <div id="triage-circle" class="w-14 h-14 rounded-2xl bg-red-950/90 border border-red-700 flex items-center justify-center text-2xl font-black text-red-400 shadow-inner">
+                    !
                 </div>
                 <div>
-                    <div class="flex items-center space-x-2">
-                        <span id="alert-tier-badge" class="px-2.5 py-0.5 rounded-md text-xs font-black bg-red-600 text-white">TIER 4: CRITICAL ALERT (RED)</span>
-                        <span id="alert-eta-badge" class="text-xs text-red-300 font-semibold mono">EXCURSION PREDICTED IN ~45 MINUTES</span>
+                    <div class="flex items-center space-x-2.5">
+                        <span id="triage-headline" class="text-sm font-extrabold uppercase tracking-wide text-red-400 mono">OPD TRIAGE: CRITICAL ACTION REQUIRED</span>
+                        <span id="triage-time-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-900/80 text-red-200 mono">ETA ~45 MIN</span>
                     </div>
-                    <p id="alert-message-text" class="text-sm font-medium text-gray-200 mt-1">
-                        High acute risk of hyperglycaemic spike (>260 mg/dL). Rapid upward rate of change (+3.2 mg/dL/min) with coupled autonomic HRV suppression.
+                    <p id="triage-driver-line" class="text-sm font-semibold text-gray-200 mt-1">
+                        Primary Clinical Driver: Rapid glycemic ascent (+3.1 mg/dL/min) with parasympathetic HRV exhaustion (24ms).
                     </p>
                 </div>
             </div>
-            <div class="flex space-x-3">
-                <button onclick="triggerIntervention('bolus')" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-600/30 transition">
-                    Recommend Correction Dose
-                </button>
-                <button onclick="dismissAlert()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium rounded-lg transition">
-                    Acknowledge
+
+            <div class="flex items-center space-x-4 self-end md:self-center">
+                <div class="text-right">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">120m Adverse Risk</span>
+                    <span id="triage-risk-pct" class="text-2xl font-black text-red-400 mono">88.5%</span>
+                </div>
+                <button onclick="openInterventionDialog()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/30 transition">
+                    Review CDS Action
                 </button>
             </div>
         </div>
@@ -132,7 +202,7 @@
                 </div>
             </div>
 
-            <!-- Card 2: 120-Min Risk Score -->
+            <!-- Card 2: 120-Min Risk Score & Bayesian CI -->
             <div class="glass-panel p-5 rounded-2xl relative overflow-hidden">
                 <div class="flex justify-between items-start">
                     <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">120-Min Excursion Risk</span>
@@ -140,10 +210,10 @@
                 </div>
                 <div class="mt-2 flex items-baseline space-x-2">
                     <span id="stat-risk" class="text-4xl font-extrabold text-red-400 mono">88.5%</span>
-                    <span class="text-xs text-gray-400 font-medium">Ensemble P(AE)</span>
+                    <span class="text-xs text-gray-400 font-medium">MC Dropout P(AE)</span>
                 </div>
                 <div class="mt-3 flex items-center justify-between text-xs border-t border-gray-800/80 pt-2.5">
-                    <span class="text-gray-400">Confidence (95% CI):</span>
+                    <span class="text-gray-400">95% Credible Interval:</span>
                     <span id="stat-ci" class="mono font-semibold text-gray-300">83.5% – 93.5%</span>
                 </div>
             </div>
@@ -189,7 +259,7 @@
             <div class="glass-panel p-5 rounded-2xl lg:col-span-2 flex flex-col justify-between">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h2 class="text-base font-bold text-white flex items-center space-x-2">
+                        <h2 class="text-base font-bold flex items-center space-x-2">
                             <span>📈 Interstitial Glucose Dynamic Trajectory</span>
                         </h2>
                         <p class="text-xs text-gray-400">Past 4 Hours CGM Stream + Next 120 Minutes Projected Excursion Cone</p>
@@ -209,7 +279,7 @@
                 <!-- Simulation Action Bar -->
                 <div class="mt-4 pt-3 border-t border-gray-800 flex flex-wrap items-center justify-between gap-3 text-xs">
                     <div class="flex items-center space-x-2">
-                        <span class="text-gray-400 font-medium">Clinical Perturbation:</span>
+                        <span class="text-gray-400 font-medium">Physiological Perturbation:</span>
                         <button onclick="injectScenario('meal_spike')" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-yellow-300 border border-yellow-700/50 font-medium transition">
                             🍱 Indian Lunch (+75g Carbs)
                         </button>
@@ -230,35 +300,38 @@
             <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <h2 class="text-base font-bold text-white flex items-center space-x-2">
-                            <span>🔍 SHAP Clinical Explainability</span>
+                        <h2 class="text-base font-bold flex items-center space-x-2">
+                            <span>🔍 Live SHAP Explainability</span>
                         </h2>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">DOCTOR CDS</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">GAME-THEORETIC ATTRIBUTION</span>
                     </div>
-                    <p class="text-xs text-gray-400 mb-4">Top contributing physiological drivers for this alert:</p>
+                    <p class="text-xs text-gray-400 mb-3">Live mathematical feature contributions for active prediction:</p>
 
                     <!-- Feature Bars -->
-                    <div id="shap-bars" class="space-y-3.5">
-                        <!-- Populated by JS -->
+                    <div id="shap-bars" class="space-y-3">
+                        <!-- Populated dynamically by JS -->
                     </div>
                 </div>
 
-                <div class="mt-5 p-3 rounded-xl bg-gray-900/90 border border-gray-800 text-xs">
+                <div class="mt-4 p-3 rounded-xl bg-gray-900/90 border border-gray-800 text-xs">
                     <div class="text-gray-300 font-semibold mb-1 flex items-center space-x-1.5">
                         <span class="text-cyan-400">💡</span>
                         <span>Clinical Decision Support Recommendation:</span>
                     </div>
                     <p id="clinical-recommendation" class="text-gray-400 leading-relaxed">
-                        Patient's acute post-prandial glucose spike is exacerbated by high baseline HbA1c (8.4%). Recommend 2-4 units rapid-acting insulin analogue correction and follow-up in 45 minutes.
+                        [Physician judgment required] Patient's acute post-prandial glucose spike is exacerbated by high baseline HbA1c (8.4%). Recommend 2-4 units rapid-acting insulin analogue correction and follow-up in 45 minutes.
                     </p>
                 </div>
             </div>
 
         </div>
 
-        <!-- Bottom Row: Multi-Patient Roster Overview -->
+        <!-- Bottom Row: Multi-Patient Ward Roster -->
         <div class="glass-panel p-5 rounded-2xl">
-            <h2 class="text-base font-bold text-white mb-3">👥 Active Ward Monitoring Cohort (India T2D Registry)</h2>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-bold">👥 Active Ward Monitoring Cohort (India T2D Registry)</h2>
+                <span class="text-xs text-gray-400">4-Tier Risk Categorization • Real-Time Fatigue Suppressed</span>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-gray-300">
                     <thead class="text-[11px] uppercase tracking-wider text-gray-400 border-b border-gray-800 bg-gray-900/50">
@@ -316,19 +389,86 @@
 
     </main>
 
-    <!-- Footer -->
-    <footer class="glass-panel border-t border-gray-800 px-6 py-3 text-center text-xs text-gray-500">
-        Happiest Health Digital Twin Challenge 2026 • GlucoTwin Model v1.0 • Clinician Decision Support Architecture
+    <!-- Footer with SaMD Governance Disclaimer -->
+    <footer class="glass-panel border-t border-gray-800 px-6 py-3 text-center text-xs text-gray-500 flex flex-col md:flex-row items-center justify-between gap-2">
+        <span>Happiest Health Digital Twin Challenge 2026 • GlucoTwin Model v1.2</span>
+        <span class="font-medium text-amber-500/90">⚖️ CDS Regulatory Disclaimer: For Investigational Clinical Decision Support only. Not classified as SaMD Class II/III. Physician judgment required before clinical action.</span>
     </footer>
+
+    <!-- INTERACTION / BOLUS CONFIRMATION MODAL -->
+    <div id="interventionModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-md w-full p-6 rounded-2xl border border-gray-700 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                    <span>💉 Clinical Intervention Order</span>
+                </h3>
+                <button onclick="closeInterventionDialog()" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-xs space-y-1.5">
+                <span class="font-bold text-red-300">Recommended Action:</span>
+                <p id="modal-recommendation-text" class="text-gray-200"></p>
+            </div>
+            <div class="space-y-2">
+                <label class="flex items-start space-x-2.5 text-xs text-gray-300 cursor-pointer">
+                    <input type="checkbox" id="physician-ack-check" class="mt-0.5 rounded border-gray-700 text-cyan-600 focus:ring-cyan-500">
+                    <span><strong>Mandatory Clinical Acknowledgment:</strong> I confirm this titration has been verified against patient clinical history, renal function (eGFR), and current IOB.</span>
+                </label>
+            </div>
+            <div class="flex justify-end space-x-3 pt-2">
+                <button onclick="closeInterventionDialog()" class="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-medium text-gray-300">Cancel</button>
+                <button onclick="confirmIntervention()" id="confirm-intervention-btn" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white shadow-lg shadow-cyan-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Execute Clinical Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHYSICIAN CONSULT NOTE & AGP SUMMARY MODAL -->
+    <div id="consultModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 rounded-2xl border border-gray-700 space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                        <span>📋 Ambulatory Glucose Profile (AGP) & Physician Consult Note</span>
+                    </h3>
+                    <p class="text-xs text-gray-400">Standardized clinical summary for EMR paste / PDF export</p>
+                </div>
+                <button onclick="closeConsultModal()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+
+            <!-- Structured Note Area -->
+            <pre id="consult-note-content" class="p-4 rounded-xl bg-gray-950/80 border border-gray-800 text-xs text-gray-200 mono whitespace-pre-wrap leading-relaxed overflow-x-auto"></pre>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-800">
+                <span id="copy-status" class="text-xs text-emerald-400 font-semibold opacity-0 transition-opacity">Copied to clipboard!</span>
+                <div class="flex space-x-3">
+                    <button onclick="copyConsultNote()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-lg shadow-md transition">
+                        📋 Copy Note to Clipboard
+                    </button>
+                    <button onclick="window.print()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg shadow-md transition">
+                        🖨️ Print / Save PDF
+                    </button>
+                    <button onclick="closeConsultModal()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium rounded-lg">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Frontend Engine Script -->
     <script>
         let currentPatientId = "DEMO-RAJESH";
         let trajectoryChartInstance = null;
+        let isLightMode = false;
 
         const PATIENT_DATA = {
             "DEMO-RAJESH": {
                 name: "Rajesh Kumar (52M)",
+                age: 52,
+                gender: "Male",
+                duration: "7 years",
+                meds: "Metformin 1000mg BD, SGLT2i 10mg OD, Glargine 40U",
                 glucose: 242.0,
                 roc: "+3.1 mg/dL/min",
                 trend: "↑↑",
@@ -341,20 +481,26 @@
                 hba1c: "194.4 mg/dL (8.4%)",
                 alert: "TIER 4: CRITICAL ALERT (RED)",
                 alertEta: "EXCURSION PREDICTED IN ~45 MINUTES",
+                triageHeadline: "OPD TRIAGE: CRITICAL INTERVENTION REQUIRED",
+                triageDriver: "Rapid post-prandial glycemic surge (+3.1 mg/dL/min) with parasympathetic HRV exhaustion (24ms).",
                 alertMsg: "Acute post-prandial hyperglycemia excursion predicted. Blood glucose accelerating rapidly towards 280+ mg/dL. High risk of hyperosmolar excursion.",
-                recommendation: "Patient's acute post-lunch glycemic spike requires prompt clinical intervention. Recommend 3-4 units subcutaneous rapid-acting insulin analogue bolus.",
+                recommendation: "[Physician judgment required] Patient acute post-lunch glycemic spike requires prompt clinical intervention. Recommend 3-4 units subcutaneous rapid-acting insulin analogue bolus.",
                 features: [
-                    { name: "Glucose Rate of Change (+3.1 mg/dL/min)", impact: 88, dir: "increases" },
-                    { name: "Baseline Glycated Hemoglobin (HbA1c 8.4%)", impact: 72, dir: "increases" },
-                    { name: "Autonomic Parasympathetic Suppression (HRV 24ms)", impact: 64, dir: "increases" },
-                    { name: "Time Since Carbohydrate Intake (45 min)", impact: 58, dir: "increases" },
-                    { name: "Residual Active Insulin (IOB 2.4U)", impact: -35, dir: "decreases" }
+                    { name: "Current CGM Glucose (242.0 mg/dL)", shap_value: 0.285, impact: 88, dir: "increases" },
+                    { name: "Glucose Rate of Change (+3.1 mg/dL/min)", shap_value: 0.224, impact: 76, dir: "increases" },
+                    { name: "Autonomic Stress Index (HRV 24.2ms)", shap_value: 0.165, impact: 64, dir: "increases" },
+                    { name: "Baseline Glycated Hemoglobin (HbA1c 8.4%)", shap_value: 0.120, impact: 52, dir: "increases" },
+                    { name: "Residual Active Insulin (IOB 2.4U)", shap_value: -0.095, impact: -35, dir: "decreases" }
                 ],
                 pastPoints: [142, 145, 148, 155, 168, 185, 205, 222, 242],
                 futurePoints: [255, 268, 276, 282, 285, 284, 280, 272, 260]
             },
             "DEMO-PRIYA": {
                 name: "Priya Sharma (46F)",
+                age: 46,
+                gender: "Female",
+                duration: "4 years",
+                meds: "Metformin 500mg BD, Glimepiride 1mg OD",
                 glucose: 118.0,
                 roc: "-0.2 mg/dL/min",
                 trend: "→",
@@ -367,19 +513,25 @@
                 hba1c: "157.1 mg/dL (7.1%)",
                 alert: "TIER 1: OPTIMAL CONTROL (GREEN)",
                 alertEta: "NO EVENT PREDICTED",
+                triageHeadline: "OPD TRIAGE: STABLE GLYCEMIC CONTROL",
+                triageDriver: "High Time-in-Range (89%) and preserved autonomic vagal resilience (HRV 44.5ms).",
                 alertMsg: "Glycemic metrics are tightly regulated within normal physiological boundaries. No adverse excursion detected over 120-minute horizon.",
-                recommendation: "Continue current lifestyle compliance and morning metformin schedule. Routine nocturnal monitoring active.",
+                recommendation: "[Physician judgment required] Continue current lifestyle compliance and morning metformin schedule. Routine nocturnal monitoring active.",
                 features: [
-                    { name: "High Time-in-Range (TIR 89%)", impact: -75, dir: "decreases" },
-                    { name: "Preserved Autonomic Tone (HRV 44.5ms)", impact: -62, dir: "decreases" },
-                    { name: "Low Glucose Volatility (CV 14%)", impact: -50, dir: "decreases" },
-                    { name: "Mild Sulfonylurea Residual Action", impact: 32, dir: "increases" }
+                    { name: "High Time-in-Range (TIR 89%)", shap_value: -0.245, impact: -75, dir: "decreases" },
+                    { name: "Preserved Autonomic Tone (HRV 44.5ms)", shap_value: -0.180, impact: -62, dir: "decreases" },
+                    { name: "Low Glucose Volatility (CV 14%)", shap_value: -0.140, impact: -50, dir: "decreases" },
+                    { name: "Mild Sulfonylurea Residual Action", shap_value: 0.082, impact: 32, dir: "increases" }
                 ],
                 pastPoints: [125, 122, 120, 118, 117, 119, 118, 117, 118],
                 futurePoints: [118, 117, 116, 115, 115, 116, 118, 119, 120]
             },
             "DEMO-MOHAN": {
                 name: "Mohan Lal (61M)",
+                age: 61,
+                gender: "Male",
+                duration: "12 years",
+                meds: "Metformin 500mg OD, Degludec 24U, Telmisartan 40mg",
                 glucose: 198.5,
                 roc: "+1.6 mg/dL/min",
                 trend: "↑",
@@ -392,19 +544,25 @@
                 hba1c: "217.3 mg/dL (9.2%)",
                 alert: "TIER 3: HIGH RISK WARNING (ORANGE)",
                 alertEta: "EXCURSION PREDICTED IN ~85 MINUTES",
+                triageHeadline: "OPD TRIAGE: HIGH RISK (RENAL IMPAIRMENT)",
+                triageDriver: "Chronic glycemic dysregulation (HbA1c 9.2%) with reduced renal filtration (eGFR 58).",
                 alertMsg: "Persistent hyperglycemia with renal impairment (eGFR 58 mL/min). Insulin clearance delayed.",
-                recommendation: "Cautious insulin titration required due to reduced renal filtration capacity. Alert attending nursing staff for hourly fingerstick verification.",
+                recommendation: "[Physician judgment required] Cautious insulin titration required due to reduced renal filtration capacity. Alert attending nursing staff for hourly fingerstick verification.",
                 features: [
-                    { name: "Severe Long-term Dysregulation (HbA1c 9.2%)", impact: 82, dir: "increases" },
-                    { name: "Reduced Renal Clearance (eGFR 58)", impact: 70, dir: "increases" },
-                    { name: "Elevated Systolic Pressure (145 mmHg)", impact: 54, dir: "increases" },
-                    { name: "Partial Basal Insulin Activity", impact: -30, dir: "decreases" }
+                    { name: "Severe Long-term Dysregulation (HbA1c 9.2%)", shap_value: 0.265, impact: 82, dir: "increases" },
+                    { name: "Reduced Renal Clearance (eGFR 58)", shap_value: 0.210, impact: 70, dir: "increases" },
+                    { name: "Elevated Systolic Pressure (145 mmHg)", shap_value: 0.155, impact: 54, dir: "increases" },
+                    { name: "Partial Basal Insulin Activity", shap_value: -0.090, impact: -30, dir: "decreases" }
                 ],
                 pastPoints: [165, 170, 174, 180, 184, 190, 193, 196, 198],
                 futurePoints: [205, 212, 218, 225, 230, 234, 236, 238, 240]
             },
             "DEMO-SUNITA": {
                 name: "Sunita Devi (39F)",
+                age: 39,
+                gender: "Female",
+                duration: "2 years",
+                meds: "Metformin 500mg BD monotherapy",
                 glucose: 104.2,
                 roc: "+0.1 mg/dL/min",
                 trend: "→",
@@ -417,17 +575,45 @@
                 hba1c: "137.0 mg/dL (6.4%)",
                 alert: "TIER 1: OPTIMAL CONTROL (GREEN)",
                 alertEta: "NO EVENT PREDICTED",
+                triageHeadline: "OPD TRIAGE: OPTIMAL CONTROL (EARLY T2D)",
+                triageDriver: "Exceptional insulin sensitivity and high autonomic vagal resilience (HRV 52ms).",
                 alertMsg: "Early-stage T2D patient demonstrating exceptional glycemic control under monotherapy.",
-                recommendation: "Maintain dietary guidelines and physical exercise program. Twin baseline recalibrated.",
+                recommendation: "[Physician judgment required] Maintain dietary guidelines and physical exercise program. Twin baseline calibrated.",
                 features: [
-                    { name: "Early Disease Stage (2 yrs diagnosis)", impact: -85, dir: "decreases" },
-                    { name: "Excellent Insulin Sensitivity", impact: -72, dir: "decreases" },
-                    { name: "High Autonomic Resilience (HRV 52ms)", impact: -60, dir: "decreases" }
+                    { name: "Early Disease Stage (2 yrs diagnosis)", shap_value: -0.280, impact: -85, dir: "decreases" },
+                    { name: "Excellent Insulin Sensitivity (ISF 50)", shap_value: -0.220, impact: -72, dir: "decreases" },
+                    { name: "High Autonomic Resilience (HRV 52ms)", shap_value: -0.190, impact: -60, dir: "decreases" }
                 ],
                 pastPoints: [100, 102, 101, 103, 104, 105, 104, 103, 104],
                 futurePoints: [105, 106, 105, 104, 103, 104, 105, 105, 104]
             }
         };
+
+        function toggleTheme() {
+            isLightMode = !isLightMode;
+            document.body.classList.toggle('light-mode', isLightMode);
+            const icon = document.getElementById("theme-icon");
+            const label = document.getElementById("theme-label");
+
+            if (isLightMode) {
+                icon.innerText = "🌙";
+                label.innerText = "Dark Tech";
+            } else {
+                icon.innerText = "☀️";
+                label.innerText = "OPD Light";
+            }
+
+            // Update Chart grid/tick styling
+            if (trajectoryChartInstance) {
+                const tickColor = isLightMode ? '#475569' : '#9CA3AF';
+                const gridColor = isLightMode ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+                trajectoryChartInstance.options.scales.x.ticks.color = tickColor;
+                trajectoryChartInstance.options.scales.x.grid.color = gridColor;
+                trajectoryChartInstance.options.scales.y.ticks.color = tickColor;
+                trajectoryChartInstance.options.scales.y.grid.color = gridColor;
+                trajectoryChartInstance.update();
+            }
+        }
 
         function switchPatient(patientId) {
             currentPatientId = patientId;
@@ -435,9 +621,9 @@
                 const btn = document.getElementById("btn-" + id);
                 if (btn) {
                     if (id === patientId) {
-                        btn.className = "px-3 py-1 rounded-md font-semibold text-white bg-cyan-600 transition";
+                        btn.className = "px-2.5 py-1 rounded-md font-semibold text-white bg-cyan-600 transition";
                     } else {
-                        btn.className = "px-3 py-1 rounded-md text-gray-300 hover:text-white transition";
+                        btn.className = "px-2.5 py-1 rounded-md text-gray-300 hover:text-white transition";
                     }
                 }
             });
@@ -456,29 +642,42 @@
             document.getElementById("stat-hrv").innerText = data.hrv.toFixed(1);
             document.getElementById("stat-eag").innerText = data.hba1c;
 
-            // Alert banner handling
-            const banner = document.getElementById("alert-banner");
-            const alertBadge = document.getElementById("alert-tier-badge");
-            const etaBadge = document.getElementById("alert-eta-badge");
-            const alertMsg = document.getElementById("alert-message-text");
+            // Update 3-Second Glance Triage Card
+            const triageCard = document.getElementById("triage-card");
+            const triageCircle = document.getElementById("triage-circle");
+            const triageHeadline = document.getElementById("triage-headline");
+            const triageTimeBadge = document.getElementById("triage-time-badge");
+            const triageDriver = document.getElementById("triage-driver-line");
+            const triageRiskPct = document.getElementById("triage-risk-pct");
 
-            alertBadge.innerText = data.alert;
-            etaBadge.innerText = data.alertEta;
-            alertMsg.innerText = data.alertMsg;
+            triageHeadline.innerText = data.triageHeadline;
+            triageTimeBadge.innerText = data.alertEta;
+            triageDriver.innerText = "Primary Clinical Driver: " + data.triageDriver;
+            triageRiskPct.innerText = data.risk.toFixed(1) + "%";
 
-            banner.className = "glass-panel p-4 rounded-2xl flex items-center justify-between transition-all duration-300";
+            triageCard.className = "glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-300";
+
             if (data.tier === "RED") {
-                banner.classList.add("border-l-8", "border-red-500", "pulse-red");
-                alertBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-black bg-red-600 text-white";
+                triageCard.classList.add("border-l-8", "border-red-500", "pulse-red");
+                triageCircle.className = "w-14 h-14 rounded-2xl bg-red-950/90 border border-red-700 flex items-center justify-center text-2xl font-black text-red-400 shadow-inner";
+                triageHeadline.className = "text-sm font-extrabold uppercase tracking-wide text-red-400 mono";
+                triageTimeBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-red-900/80 text-red-200 mono";
+                triageRiskPct.className = "text-2xl font-black text-red-400 mono";
             } else if (data.tier === "ORANGE") {
-                banner.classList.add("border-l-8", "border-orange-500", "pulse-orange");
-                alertBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-black bg-orange-600 text-white";
+                triageCard.classList.add("border-l-8", "border-orange-500", "pulse-orange");
+                triageCircle.className = "w-14 h-14 rounded-2xl bg-orange-950/90 border border-orange-700 flex items-center justify-center text-2xl font-black text-orange-400 shadow-inner";
+                triageHeadline.className = "text-sm font-extrabold uppercase tracking-wide text-orange-400 mono";
+                triageTimeBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-orange-900/80 text-orange-200 mono";
+                triageRiskPct.className = "text-2xl font-black text-orange-400 mono";
             } else {
-                banner.classList.add("border-l-8", "border-emerald-500");
-                alertBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-black bg-emerald-700 text-white";
+                triageCard.classList.add("border-l-8", "border-emerald-500", "pulse-green");
+                triageCircle.className = "w-14 h-14 rounded-2xl bg-emerald-950/90 border border-emerald-700 flex items-center justify-center text-2xl font-black text-emerald-400 shadow-inner";
+                triageHeadline.className = "text-sm font-extrabold uppercase tracking-wide text-emerald-400 mono";
+                triageTimeBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-900/80 text-emerald-200 mono";
+                triageRiskPct.className = "text-2xl font-black text-emerald-400 mono";
             }
 
-            // SHAP Features Render
+            // Live SHAP Features Render
             const shapContainer = document.getElementById("shap-bars");
             shapContainer.innerHTML = "";
             data.features.forEach(feat => {
@@ -486,14 +685,15 @@
                 const barColor = isInc ? "bg-red-500" : "bg-emerald-500";
                 const textColor = isInc ? "text-red-400" : "text-emerald-400";
                 const widthPct = Math.min(100, Math.abs(feat.impact));
+                const shapStr = feat.shap_value !== undefined ? `(SHAP: ${feat.shap_value > 0 ? '+' : ''}${feat.shap_value.toFixed(3)})` : '';
 
                 const itemHtml = `
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-gray-300 font-medium">${feat.name}</span>
+                            <span class="font-medium">${feat.name} <span class="text-[10px] text-gray-400 font-mono">${shapStr}</span></span>
                             <span class="mono font-semibold ${textColor}">${feat.impact > 0 ? '+' : ''}${feat.impact}%</span>
                         </div>
-                        <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                        <div class="w-full bg-gray-800/80 rounded-full h-2 overflow-hidden">
                             <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${widthPct}%"></div>
                         </div>
                     </div>
@@ -503,7 +703,7 @@
 
             document.getElementById("clinical-recommendation").innerText = data.recommendation;
 
-            // Update Chart
+            // Update Trajectory Chart
             updateChart(data.pastPoints, data.futurePoints);
         }
 
@@ -564,11 +764,11 @@
                         y: {
                             min: 50,
                             max: 320,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
                             ticks: { color: '#9CA3AF', font: { family: 'JetBrains Mono', size: 10 } }
                         },
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
                             ticks: { color: '#9CA3AF', font: { family: 'JetBrains Mono', size: 10 } }
                         }
                     },
@@ -595,6 +795,8 @@
                 data.roc = "+4.2 mg/dL/min";
                 data.risk = 94.0;
                 data.tier = "RED";
+                data.triageHeadline = "OPD TRIAGE: ACUTE CARB EXCURSION";
+                data.triageDriver = "Post-prandial Indian carbohydrate bolus (+75g) accelerating velocity.";
                 data.pastPoints = data.pastPoints.map(p => p + 15);
                 data.futurePoints = data.futurePoints.map(p => p + 30);
             } else if (type === 'hypo_drop') {
@@ -602,13 +804,16 @@
                 data.roc = "-3.4 mg/dL/min";
                 data.risk = 92.0;
                 data.tier = "RED";
+                data.triageHeadline = "OPD TRIAGE: ACUTE HYPOGLYCEMIA WARNING";
+                data.triageDriver = "Nocturnal glucose drop below 70 mg/dL with active insulin clearance.";
                 data.alert = "TIER 4: ACUTE HYPOGLYCEMIA (<70 mg/dL)";
                 data.alertMsg = "Rapid downward trajectory into hypoglycemic shock predicted within 30 minutes.";
+                data.recommendation = "[Physician judgment required] Administer 15g fast-acting oral carbohydrates immediately. Hold prandial bolus.";
                 data.futurePoints = [62, 58, 54, 52, 55, 60, 68, 75];
             } else if (type === 'insulin_bolus') {
                 data.iob += 4.0;
                 data.futurePoints = data.futurePoints.map(p => Math.max(120, p - 45));
-                data.recommendation = "4U correction bolus administered. Projected to stabilize glucose back to target range in ~75 minutes.";
+                data.recommendation = "[Physician judgment required] 4U correction bolus administered. Projected to stabilize glucose back to target range in ~75 minutes.";
             }
             renderPatientView(data);
         }
@@ -617,15 +822,106 @@
             switchPatient(currentPatientId);
         }
 
-        function dismissAlert() {
-            document.getElementById("alert-banner").style.opacity = "0.5";
+        function openInterventionDialog() {
+            const data = PATIENT_DATA[currentPatientId];
+            document.getElementById("modal-recommendation-text").innerText = data.recommendation;
+            document.getElementById("physician-ack-check").checked = false;
+            document.getElementById("interventionModal").classList.remove("hidden");
         }
 
-        function triggerIntervention(type) {
+        function closeInterventionDialog() {
+            document.getElementById("interventionModal").classList.add("hidden");
+        }
+
+        function confirmIntervention() {
+            const checked = document.getElementById("physician-ack-check").checked;
+            if (!checked) {
+                alert("Physician verification required: Please check the acknowledgment box before confirming.");
+                return;
+            }
+            closeInterventionDialog();
             injectScenario('insulin_bolus');
         }
 
-        // Initialize on load
+        // Consult Note & AGP Summary Generation
+        function openConsultModal() {
+            const data = PATIENT_DATA[currentPatientId];
+            const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+            const note = `================================================================================
+GLUCOTWIN CLINICAL DECISION SUPPORT — AMBULATORY CONSULT NOTE
+Generated: ${dateStr} IST | Location: OPD Endocrinology
+Patient ID: ${currentPatientId} | Name: ${data.name}
+Clinical Diagnosis: Type 2 Diabetes Mellitus (${data.duration})
+Current Regimen: ${data.meds}
+================================================================================
+
+1. PHYSIOLOGICAL & AMBULATORY GLUCOSE PROFILE (AGP) SUMMARY:
+   • Current CGM Interstitial Glucose: ${data.glucose.toFixed(1)} mg/dL
+   • Glycemic Velocity (ROC): ${data.roc}
+   • Estimated Average Glucose (eAG): ${data.hba1c}
+   • Time-in-Range (70–180 mg/dL): ${data.tier === 'GREEN' ? '89%' : '58%'}
+   • Time-Above-Range (>180 mg/dL): ${data.tier === 'RED' ? '38%' : '10%'}
+   • Time-Below-Range (<70 mg/dL): ${data.glucose < 70 ? '4%' : '<1%'}
+   • Active Insulin on Board (IOB): ${data.iob.toFixed(1)} U (Hovorka PK)
+   • Estimated ISF: ${data.isf.toFixed(1)} mg/dL/Unit
+   • Autonomic Tone (HRV RMSSD): ${data.hrv.toFixed(1)} ms
+
+2. DIGITAL TWIN PREDICTIVE INFERENCE (120-MIN HORIZON):
+   • Predicted Risk Tier: ${data.tier}
+   • 120-Min Excursion Probability: ${data.risk.toFixed(1)}% (95% Bayesian CI: ${data.ci})
+   • Projected Time to Excursion (ETA): ${data.alertEta}
+   • Triage Classification: ${data.triageHeadline}
+
+3. GAME-THEORETIC SHAP ATTRIBUTION (AI CLINICAL RATIONALE):
+${data.features.map(f => `   • ${f.name}: ${f.impact > 0 ? '+' : ''}${f.impact}% (${f.dir.toUpperCase()} RISK)`).join('\n')}
+
+4. CLINICAL DECISION SUPPORT RECOMMENDATION:
+   ${data.recommendation}
+
+================================================================================
+PHYSICIAN ATTESTATION & SIGN-OFF:
+Attending Endocrinologist: ___________________________   Reg No: _____________
+Attestation: I have verified this AI-generated CDS recommendation against independent clinical evaluation.
+================================================================================`;
+
+            document.getElementById("consult-note-content").innerText = note;
+            document.getElementById("consultModal").classList.remove("hidden");
+        }
+
+        function closeConsultModal() {
+            document.getElementById("consultModal").classList.add("hidden");
+        }
+
+        function copyConsultNote() {
+            const text = document.getElementById("consult-note-content").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const status = document.getElementById("copy-status");
+                status.style.opacity = "1";
+                setTimeout(() => { status.style.opacity = "0"; }, 2500);
+            });
+        }
+
+        // PWA Offline Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('GlucoTwin Service Worker registered:', reg.scope))
+                    .catch(err => console.warn('Service Worker registration skipped:', err));
+            });
+        }
+
+        // Online / Offline Status Detection
+        window.addEventListener('online', () => {
+            document.getElementById("ws-indicator").className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+            document.getElementById("ws-text").innerText = "Twin Synced";
+        });
+        window.addEventListener('offline', () => {
+            document.getElementById("ws-indicator").className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+            document.getElementById("ws-text").innerText = "Offline Buffer Active";
+        });
+
+        // Initialize on DOM load
         window.addEventListener('DOMContentLoaded', () => {
             initChart();
             switchPatient('DEMO-RAJESH');

@@ -30,10 +30,32 @@ class TwinEngine:
         shap_explainer: Any = None
     ):
         self.twins: Dict[str, PatientTwin] = {}
-        self.xgb_model = xgb_model
-        self.lstm_model = lstm_model
-        self.ensemble_model = ensemble_model
-        self.shap_explainer = shap_explainer
+        if xgb_model is None or lstm_model is None or ensemble_model is None:
+            try:
+                from src.models.xgboost_model import XGBoostAEPredictor
+                from src.models.lstm_model import LSTMAEPredictor
+                from src.models.ensemble import EnsemblePredictor
+                from src.explainability.shap_explainer import SHAPExplainer
+
+                xgb = xgb_model or XGBoostAEPredictor()
+                lstm = lstm_model or LSTMAEPredictor()
+                ens = ensemble_model or EnsemblePredictor(xgb_model=xgb, lstm_model=lstm)
+                shap = shap_explainer or SHAPExplainer(model=xgb)
+                self.xgb_model = xgb
+                self.lstm_model = lstm
+                self.ensemble_model = ens
+                self.shap_explainer = shap
+            except Exception:
+                self.xgb_model = xgb_model
+                self.lstm_model = lstm
+                self.ensemble_model = ensemble_model
+                self.shap_explainer = shap_explainer
+        else:
+            self.xgb_model = xgb_model
+            self.lstm_model = lstm
+            self.ensemble_model = ensemble_model
+            self.shap_explainer = shap_explainer
+
         self.alert_callbacks: List[Callable[[Alert], Any]] = []
 
     def get_or_create_twin(self, patient_id: str, ehr_features: Dict[str, Any]) -> PatientTwin:
