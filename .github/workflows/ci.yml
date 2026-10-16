@@ -31,7 +31,7 @@ jobs:
 
       - name: Run Pytest Suite with Coverage
         run: |
-          python -m pytest --maxfail=1 --disable-warnings -q
+          python -m pytest -p no:langsmith --disable-warnings -q
 
   docker-build:
     name: Docker Container Build Verification
