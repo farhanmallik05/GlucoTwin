@@ -37,6 +37,7 @@ COPY --from=builder /root/.local /root/.local
 
 # Copy application source code and data schemas
 COPY src/ /app/src/
+RUN mkdir -p /app/data/raw /app/data/processed /app/data/synthetic
 COPY data/ /app/data/
 
 EXPOSE 8000

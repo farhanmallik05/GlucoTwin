@@ -24,12 +24,13 @@ src/models/artifacts/*.json
 !src/models/artifacts/.gitkeep
 
 # Data (raw and processed — large files)
-data/raw/
-data/processed/
-data/synthetic/
+data/raw/*
 !data/raw/.gitkeep
+data/processed/*
 !data/processed/.gitkeep
+data/synthetic/*
 !data/synthetic/.gitkeep
+!data/.gitkeep
 
 # Synthea output
 synthea_output/
